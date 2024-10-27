@@ -1,0 +1,92 @@
+import board
+import digitalio
+import time
+
+from adafruit_mcp2515.canio import Message, RemoteTransmissionRequest
+from adafruit_mcp2515 import MCP2515 as CAN
+
+cs = digitalio.DigitalInOut(board.CAN_CS)
+cs.switch_to_output()
+spi = board.SPI()
+can_bus = CAN(spi, cs, baudrate=125000)
+
+old_bus_state = None
+
+# from 10Count.txt:
+# (000.000000) can0 12B#03
+# (000.010645) can0 322#0000000034001FFF
+# (000.089322) can0 3E0#0154334448363032
+# (000.099977) can0 12B#03
+# (000.110460) can0 322#0000000034001FFF
+# (000.189169) can0 3E0#0230323400000000
+# (000.199950) can0 12B#03
+# (000.210328) can0 322#0000000034001FFF
+# (000.289114) can0 3E0#0032433343445844
+# (000.299913) can0 12B#03
+# (000.310657) can0 322#0000000034001FFF
+# (000.389130) can0 3E0#0154334448363032
+# (000.399947) can0 12B#03
+# (000.410522) can0 322#0000000034001FFF
+# (000.489225) can0 3E0#0230323400000000
+# (000.499980) can0 12B#03
+# (000.510408) can0 322#0000000034001FFF
+# (000.589168) can0 3E0#0032433343445844
+# (000.599816) can0 12B#03
+# (000.610512) can0 322#0000000034001FFF
+# (000.689185) can0 3E0#0154334448363032
+# (000.699985) can0 12B#03
+# (000.710545) can0 322#0000000034001FFF
+# (000.789274) can0 3E0#0230323400000000
+# (000.799994) can0 12B#03
+# (000.810473) can0 322#0000000034001FFF
+# (000.889219) can0 3E0#0032433343445844
+# (000.899835) can0 12B#03
+# (000.910531) can0 322#0000000034001FFF
+# (000.989244) can0 3E0#0154334448363032
+#
+def msgs10():
+    message = Message(id=0x12b, data=b"\x03", extended=False)
+    send_success = can_bus.send(message)
+
+# from 1Count.txt:
+# (000.400922) can0 3EA#4170FF4BFF240100
+# (000.406011) can0 243#000000000000
+# (000.407026) can0 273#0000000000000000
+# (000.408034) can0 2D3#1100000000000000
+# (000.440058) can0 22F#00
+# (000.446562) can0 3F2#C50219A819000000
+# (000.447745) can0 37A#7F7F7F7F7807
+# (000.450402) can0 26B#0002010000000000
+# (000.460570) can0 301#0000000000000000
+# (000.470394) can0 30F#0F0A0A0A0A0A03
+# (000.479873) can0 30E#04EB1DFF00000000
+# (000.480825) can0 317#000D051610004202
+# (000.490231) can0 32F#C80002
+# (000.520560) can0 34E#007F007F0248007F
+# (000.530528) can0 350#120E0A0000000001
+# (000.534976) can0 3D2#2BD64F00
+# (000.535599) can0 3E2#250000
+# (000.540459) can0 377#1C0000001C000000
+# (000.550545) can0 387#0000000000000000
+# (000.560672) can0 397#0000000000000000
+# (000.570353) can0 3AF#00030103B7000000
+# (000.580496) can0 3C3#1F6F6FFF4000000B
+# (000.590781) can0 3E8#35296210FF8F0000
+# 
+def msgs1():
+    message = Message(id=0x3ea, data=b"\x41\x70\xff\x4b\xff\x24\x01\x00", extended=False)
+    send_success = can_bus.send(message)
+
+while True:
+
+    # send msgs10 10 times a second (100ms)
+    for i in range(0, 10):
+        time.sleep(0.100)
+        msgs10()
+
+    # now at the second internval send the msgs1
+    msgs1()
+
+    print("1 second loop")
+
+
